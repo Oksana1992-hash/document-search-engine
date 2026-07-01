@@ -1,0 +1,57 @@
+services:
+  # База данных PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: search_postgres
+    environment:
+      POSTGRES_USER: search_user
+      POSTGRES_PASSWORD: search_password
+      POSTGRES_DB: search_db
+    ports:
+      "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U search_user -d search_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Поисковый движок Elasticsearch
+  elasticsearch:
+    image: elasticsearch:8.11.1
+    container_name: search_elastic
+    environment:
+      - discovery.type=single-node
+      - xpack.secutity.enabled=false # Отключаем авторизацию для простоты тестового задания
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Приложение
+  web:
+    build: .
+    container_name: search_api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://search_user:search_password@db:5432/search_db
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+volumes:
+  postgres_data:
+  elastic_data:
