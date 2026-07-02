@@ -6,6 +6,8 @@ import socket
 import pandas as pd
 from elasticsearch import Elasticsearch
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import String
 
 
 # Настройки
@@ -43,7 +45,13 @@ def import_data():
 
     print("💾 Загрузка данных в PostgreSQL...")
     engine = create_engine(DB_URL)
-    df.to_sql('documents', engine, if_exists='replace', index=False)
+    df.to_sql(
+        'documents',
+        engine,
+        if_exists='replace',
+        index=False,
+        dtype={'rubrics': ARRAY(String)}
+    )
     print("✅ Данные успешно загружены в Postgres!")
 
     # Перед подключением дождемся готовности Elasticsearch
@@ -70,7 +78,6 @@ def import_data():
     print(f"✅ Успешно проиндексировано {len(df)} документов в Elasticsearch!")
 
     asyncio.run(es_client.close())
-
 
 if __name__ == "__main__":
     import_data()
