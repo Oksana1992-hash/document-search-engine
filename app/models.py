@@ -21,4 +21,6 @@ class Document(Base):
     text: Mapped[str] = mapped_column(String, nullable=False)
 
     # Дата создания документа
-    created_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_date: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow
+    )

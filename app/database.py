@@ -16,9 +16,9 @@ DATABASE_URL = os.getenv(
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,
-    pool_size=20,         # Базовое количество постоянных соединений в пуле
-    max_overflow=10,      # Сколько дополнительных соединений можно открыть при пиковой нагрузке
-    pool_timeout=30       # Сколько секунд ждать свободное соединение из пула до генерации ошибки
+    pool_size=20,
+    max_overflow=10,
+    pool_timeout=30
 )
 
 async_session = async_sessionmaker(

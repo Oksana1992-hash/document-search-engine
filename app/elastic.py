@@ -9,6 +9,7 @@ INDEX_NAME = "documents"
 # Инициализируем асинхронный клиент Elasticsearch
 es_client = AsyncElasticsearch(ELASTICSEARCH_URL)
 
+
 async def init_es():
     """Создает поисковый индекс с русским анализатором, если его нет"""
     exists = await es_client.indices.exists(index=INDEX_NAME)
@@ -19,7 +20,7 @@ async def init_es():
                 "mappings": {
                     "properties": {
                         "id": {"type": "integer"},
-                        # Используем русский анализатор для умного полнотекстового поиска
+                        # Используем русский анализатор для поиска
                         "text": {"type": "text", "analyzer": "russian"}
                     }
                 }

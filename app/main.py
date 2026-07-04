@@ -31,6 +31,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 @app.get(
     "/search",
     response_model=list[DocumentResponse],
@@ -76,12 +77,13 @@ async def search_documents(
 
     return documents
 
+
 @app.delete(
     "/document/{doc_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Удаление документа",
 )
-async def delete_document(doc_id: int, db: AsyncSession=Depends(get_db)):
+async def delete_document(doc_id: int, db: AsyncSession = Depends(get_db)):
     # Проверяем, существует ли документ в Postgres
     stmt = select(Document).where(Document.id == doc_id)
     result = await db.execute(stmt)
