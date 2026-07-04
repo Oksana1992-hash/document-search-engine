@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 
@@ -8,5 +8,5 @@ class DocumentResponse(BaseModel):
     text: str
     created_date: datetime
 
-    class Config:
-        from_attributes = True
+    # Конфигурация в стиле Pydantic v2
+    model_config = ConfigDict(from_attributes=True)
