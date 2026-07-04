@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 
 # Настройки для запуска внутри сети Docker
-CSV_PATH = "data.csv"
+CSV_PATH = "posts.csv"
 DB_URL = "postgresql+asyncpg://search_user:search_password@db:5432/search_db"
 ES_URL = "http://elasticsearch:9200"
 INDEX_NAME = "documents"
