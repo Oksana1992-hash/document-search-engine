@@ -6,7 +6,10 @@ from app.main import app
 # Подавляем предупреждение о переопределении event_loop для чистоты вывода
 pytestmark = [
     pytest.mark.asyncio,
-    pytest.mark.filterwarnings("ignore:The event_loop fixture provided by pytest-asyncio has been redefined")
+    pytest.mark.filterwarnings(
+        "ignore:The event_loop fixture provided by "
+        "pytest-asyncio has been redefined"
+    )
 ]
 
 

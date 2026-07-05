@@ -1,33 +1,64 @@
-from fastapi import (
-    FastAPI,
-    Depends,
-    HTTPException,
-    Query,
-    status,
-)
+import asyncio
+from contextlib import asynccontextmanager
+import httpx
+
+from fastapi import FastAPI, Depends, HTTPException, Query, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
-from contextlib import asynccontextmanager
+
 from app.database import get_db, engine, Base
 from app.models import Document
 from app.schemas import DocumentResponse
 from app.elastic import es_client, init_es, INDEX_NAME
 
 
+async def wait_for_elastic(
+        url: str = "http://elasticsearch:9200",
+        timeout: int = 60,
+):
+    """Асинхронно ждет полной готовности кластера Elasticsearch
+    через HTTP-запросы"""
+    print(f"⏳ Ожидание полной готовности кластера Elasticsearch "
+          f"по адресу {url}...")
+    start_time = asyncio.get_event_loop().time()
+
+    async with httpx.AsyncClient() as client:
+        while asyncio.get_event_loop().time() - start_time < timeout:
+            try:
+                # Пытаемся запросить базовую информацию о кластере
+                response = await client.get(url, timeout=2)
+                if response.status_code == 200:
+                    print("🚀 Кластер Elasticsearch успешно запущен "
+                          "и отвечает на HTTP-запросы!")
+                    # Даем Эластику еще 1 секунду на финальный прогресс
+                    await asyncio.sleep(1)
+                    return True
+            except (httpx.ConnectError, httpx.ConnectTimeout, httpx.HTTPError):
+                pass
+            await asyncio.sleep(2)
+
+    print("❌ Не удалось дождаться полной готовности Elasticsearch.")
+    return False
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # При старте приложения создаем таблицы в БД, если их нет
+    # При старте приложения создаем таблицы в PostgreSQL, если их нет
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    # Инициализируем индекс в ElasticSearch
-    await init_es()
+
+    # Ждем полноценного ответа от API Elasticsearch
+    if await wait_for_elastic():
+        await init_es()
+
     yield
     # При остановке закрываем соединение с Elastic
     await es_client.close()
 
+
 app = FastAPI(
-    title="Document Search Engine",
+    title="Document Search Engine: Поисковый сервис документов",
     version="1.0.0",
     lifespan=lifespan,
 )
