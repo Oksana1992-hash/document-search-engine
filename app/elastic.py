@@ -3,7 +3,7 @@ from elasticsearch import AsyncElasticsearch
 
 
 # URL берем из переменной окружения Docker
-ELASTICSEARCH_URL = os.getenv("ELASTICSEARCH_URL", "http://localhost:9200")
+ELASTICSEARCH_URL = os.getenv("ELASTICSEARCH_URL", "http://elasticsearch:9200")
 INDEX_NAME = "documents"
 
 # Инициализируем асинхронный клиент Elasticsearch
